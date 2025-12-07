@@ -1,0 +1,6 @@
+migrate:
+  host: localhost
+  port: 1234
+  db: test
+  user: test
+  pass: test
