@@ -1,0 +1,16 @@
+db:
+  host: localhost
+  port: 1234
+  db: test
+  user: test
+  pass: test
+
+rabbit:
+  url: amqp://test:test@localhost:5672/
+  queue: scheduler.test
+  exchange: ""
+  routing_key: scheduler.test
+
+schedule:
+  period: 100m
+  window: 100m
