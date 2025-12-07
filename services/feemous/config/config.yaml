@@ -1,0 +1,10 @@
+server:
+  addr: ":8080"
+
+db:
+  host: localhost
+  port: "test"
+  name: test
+  user: test
+  pass: test
+

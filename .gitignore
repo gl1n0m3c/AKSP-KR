@@ -2,3 +2,7 @@
 
 # deploy
 /deploy/env/*.env
+
+# frontend
+/frontend/node_modules
+/frontend/package-lock.json

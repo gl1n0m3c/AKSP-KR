@@ -4,10 +4,14 @@ go 1.25.1
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/cors v1.2.1
+	github.com/google/uuid v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/streadway/amqp v1.1.0
+	golang.org/x/crypto v0.40.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
