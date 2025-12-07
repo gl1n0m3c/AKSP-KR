@@ -1,0 +1,170 @@
+version: "3.9"
+
+services:
+  postgres-master:
+    image: postgres:16-alpine
+    env_file:
+      - ./env/postgres-master.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-master:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feemous -d feemous"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-slave:
+    image: postgres:16-alpine
+    env_file:
+      - ./env/postgres-slave.env
+    ports:
+      - "15432:5432"
+    volumes:
+      - pg-slave:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feemous -d feemous"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    env_file:
+      - ./env/rabbitmq.env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrator:
+    build: ../services/migrator
+    env_file:
+      - ./env/migrator.env
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+    restart: "no"
+
+  feemous-master1:
+    build: ../services/feemous
+    env_file:
+      - ./env/feemous.env
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  feemous-master2:
+    build: ../services/feemous
+    env_file:
+      - ./env/feemous.env
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  feemous-slave1:
+    build: ../services/feemous
+    env_file:
+      - ./env/feemous.env
+    depends_on:
+      postgres-slave:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  feemous-slave2:
+    build: ../services/feemous
+    env_file:
+      - ./env/feemous.env
+    depends_on:
+      postgres-slave:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  feemous-balancer:
+    image: nginx:alpine
+    volumes:
+      - ./balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      feemous-master1:
+        condition: service_started
+      feemous-master2:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  scheduler:
+    build: ../services/scheduler
+    env_file:
+      - ./env/scheduler.env
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notificator-master:
+    build: ../services/notificator
+    env_file:
+      - ./env/notificator.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notificator-slave:
+    build: ../services/notificator
+    env_file:
+      - ./env/notificator.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  egress-proxy:
+    image: nginx:alpine
+    command: ["nginx", "-g", "daemon off;"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_BASE: http://feemous-balancer:8080
+    env_file:
+      - ./env/frontend.env
+    depends_on:
+      feemous-balancer:
+        condition: service_started
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+volumes:
+  pg-master:
+  pg-slave:
+
