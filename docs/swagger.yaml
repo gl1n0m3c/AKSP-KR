@@ -1,0 +1,437 @@
+openapi: 3.0.3
+info:
+  title: FeeMous API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+
+  /register:
+    post:
+      summary: Регистрация
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Created
+
+  /login:
+    post:
+      summary: Логин
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: OK
+
+  /me:
+    get:
+      summary: Текущий пользователь
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: Forbidden
+
+  /users:
+    get:
+      summary: Список пользователей
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /teams:
+    get:
+      summary: Список команд
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+    post:
+      summary: Создать команду (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimpleCreate"
+      responses:
+        "201":
+          description: Created
+
+  /teams/{id}:
+    delete:
+      summary: Удалить команду (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+
+  /positions:
+    get:
+      summary: Список должностей
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Position"
+    post:
+      summary: Создать должность (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimpleCreate"
+      responses:
+        "201":
+          description: Created
+
+  /positions/{id}:
+    delete:
+      summary: Удалить должность (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+
+  /units:
+    get:
+      summary: Список юнитов
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+    post:
+      summary: Создать юнит (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimpleCreate"
+      responses:
+        "201":
+          description: Created
+
+  /units/{id}:
+    delete:
+      summary: Удалить юнит (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+
+  /events:
+    get:
+      summary: Список встреч
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      summary: Создать встречу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventCreate"
+      responses:
+        "201":
+          description: Created
+
+  /events/{id}:
+    put:
+      summary: Обновить встречу
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventUpdate"
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Удалить встречу
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - login
+        - password
+        - first_name
+        - last_name
+        - patronymic
+        - email
+        - phone
+        - telegram
+        - position_id
+        - team_id
+        - unit_id
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        patronymic:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        telegram:
+          type: string
+          nullable: true
+        position_id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        unit_id:
+          type: string
+          format: uuid
+        head_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+
+    SimpleCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        patronymic:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        telegram:
+          type: string
+          nullable: true
+        position_id:
+          type: string
+          format: uuid
+          nullable: true
+        team_id:
+          type: string
+          format: uuid
+          nullable: true
+        unit_id:
+          type: string
+          format: uuid
+          nullable: true
+        head_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    Position:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    Unit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        scheduled_at:
+          type: string
+          format: date-time
+        organizer_id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+          nullable: true
+        participants:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    EventCreate:
+      type: object
+      required:
+        - title
+        - scheduled_at
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        scheduled_at:
+          type: string
+          format: date-time
+        team_id:
+          type: string
+          format: uuid
+          nullable: true
+        participants:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    EventUpdate:
+      allOf:
+        - $ref: "#/components/schemas/EventCreate"
